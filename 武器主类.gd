@@ -1,6 +1,6 @@
 extends Item
 class_name Wenpeon
-enum 状态 {掉落物,手持,背包}
+enum 状态 {掉落物,手持,背包,投掷物}
 enum 弹匣 {开关,当前容量,容量,换弹时间,换弹动画}
 enum 蓄力 {开关,蓄力时长,蓄力动画,蓄力后动画,数值增加,百分比增加}
 var pos = Vector2(0,0)

@@ -5,7 +5,7 @@ var San
 func _ready() -> void:
 	$Sprite2D.texture = Text
 	$Timer.timeout.connect(queue_free)
-	velocity = transform.x  * (Speed + San)
+	velocity = transform.x  * (Speed)
 func  _physics_process(delta: float) -> void:
 	move_and_slide()
 func kill(time):

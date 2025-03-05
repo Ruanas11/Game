@@ -23,12 +23,17 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	super(delta)
 	if Wenpeon_status != 状态.手持:  ##在背包时重置武器蓄力状态
+		var tween = get_tree().create_tween()
+		tween.tween_property($"蓄力", "modulate:a", 0, 0.1)
 		if Charge_state:
-			Charge_state == false
+			Charge_state = false
+			$Item/Item/AnimationPlayer.play(Atk_Animation)
 			$Item/Item/AnimationPlayer.stop()
+			timing = 0
+			Tick = 0
 	#蓄力后松开鼠标执行的事件
 	#================================
-	if Wenpeon_status == 状态.手持 and Charge_state and Input.is_action_pressed("ShuB") == false and $Item/Item/AnimationPlayer.is_playing() == false:
+	if Wenpeon_status == 状态.手持 and Charge_state and Input.is_action_pressed("ShuB") == false and $Item/Item/AnimationPlayer.is_playing() == false and Wenpeon_Detc:
 		if timing > Charge_UP[蓄力.蓄力时长]:
 			timing = Charge_UP[蓄力.蓄力时长]
 		var Atk_add = timing * Charge_UP[蓄力.数值增加]
@@ -37,9 +42,12 @@ func _physics_process(delta: float) -> void:
 		Tick = 0
 		Charge_state = false
 		timing = 0
+		var tween = get_tree().create_tween()
+		tween.tween_property($"蓄力", "modulate:a", 0, Atk_CD/2)
 	#================================
 	if Wenpeon_status == 状态.手持 and Charge_state:#蓄力计时器
 		timing += delta
+		$"蓄力".value = timing / Charge_UP[蓄力.蓄力时长] * 63 + 25
 	if Wenpeon_status == 状态.手持 and Magazine[弹匣.开关]:#弹匣数量显示
 		Kinetic_effect[0].text = str(Magazine[弹匣.当前容量])
 		Kinetic_effect[1].text =str(". ") + str(Magazine[弹匣.容量])
@@ -67,7 +75,10 @@ func _input(event: InputEvent) -> void:
 		if Magazine[弹匣.开关] and Maga_star == 换弹状态.未换弹: #处理弹匣事件
 			if Magazine_HD() == "Stop":
 				return
-		if Charge_UP[蓄力.开关] and Charge_state == false: #攻击时蓄力事件
+		if Charge_UP[蓄力.开关] and Charge_state == false: #攻击播放蓄力前动画
+			var tween = get_tree().create_tween()
+			tween.set_trans(1)
+			tween.tween_property($"蓄力", "modulate:a", 1, Atk_CD/2)
 			$Item/Item/AnimationPlayer.play(Charge_UP[蓄力.蓄力动画])
 			$Atk_CD.start(Atk_CD)
 			Charge_state = true
@@ -84,7 +95,6 @@ func _input(event: InputEvent) -> void:
 			Stop_Speed = Stop_add_Speed
 			Atk_dect = false
 		if Wenpeon_Detc:#攻击时武器在玩家范围内事件
-			$Item/Item/AnimationPlayer.play(Charge_UP[蓄力.蓄力动画])
 			$Atk_CD.start(Atk_CD)
 			Charge_state = true
 			Tick = 0
