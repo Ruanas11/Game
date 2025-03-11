@@ -3,6 +3,7 @@ class_name Wenpeon
 enum 状态 {掉落物,手持,背包,投掷物}
 enum 弹匣 {开关,当前容量,容量,换弹时间,换弹动画}
 enum 蓄力 {开关,蓄力时长,蓄力动画,蓄力后动画,数值增加,百分比增加}
+enum 双持 {开关,延迟,贴图,动作}
 var pos = Vector2(0,0)
 @export var Wenpeon_status = 状态.掉落物 ##武器状态 分为掉落物  手持  背包内
 @export var Atk : Vector2 = Vector2(1,5) ##攻击力
@@ -18,6 +19,7 @@ var pos = Vector2(0,0)
 @export var Magazine = [false,0,10,0.5,"通用换弹动画"] ##弹匣功能
 @export var Charge_UP =[false,1.5,"武器动画库/蓄力前通用动画","武器动画库/蓄力后通用动画",20,1.0] ##蓄力功能
 @export var Scaling = Vector2(1,1) ##缩放
+@export var Dual_wielding = [false,0.1,"res://素材库/武器贴图/Selection 2024-09-04T12.47.06.png","武器动画库/双持射击"]
 @export var Flip_v = true
 @export var Flip_h = true
 var timing :float = 0

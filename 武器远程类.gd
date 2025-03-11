@@ -15,18 +15,32 @@ enum 投掷功能 {投掷开关,蓄力关联,增加力度,重力}
 @export var Kill_CD = Vector2(1,2)
 @export var Maga_star = 换弹状态.未换弹
 var Tick = 0 #攻击计时器
+var Dual_tick = 0#
+var Dual_count = 0
 var Mouse = true
 var Atk_dect = true
 var Rota = 0
 var Posa = Vector2.ZERO
 var gravity = 0
+var Dual_poat = Vector2.ZERO
+var Dual_rot = 0
 func _ready() -> void:
 	super()
+	$Dual.timeout.connect(Dual_Stop)
 	$Atk_CD.timeout.connect(CD_Stop)
 	$Magazine.timeout.connect(Magae)
 func _physics_process(delta: float) -> void:
 	super(delta)
+	if Dual_wielding[双持.开关]:
+		var tween = get_tree().create_tween()
+		tween.tween_property($Dual_wiel, "rotation", $Dual_wiel.rotation + $Dual_wiel.get_angle_to(get_global_mouse_position()), Rot_Speed)
+		$Dual_wiel.scale = $Item.scale
+		$Dual_wiel.visible = true
+	if Dual_wielding[双持.开关] == false:
+		$Dual_wiel.visible = false
 	if Wenpeon_status != 状态.手持:#武器不为手持时退出蓄力状态
+		if Dual_wielding[双持.开关]:
+			$Dual_wiel.visible = false
 		var tween = get_tree().create_tween()
 		tween.tween_property($"蓄力", "modulate:a", 0, 0.1)
 		if Charge_state:
@@ -35,6 +49,8 @@ func _physics_process(delta: float) -> void:
 			$Item/Item/AnimationPlayer.stop()
 			timing = 0
 			Tick = 0
+	if Dual_wielding[双持.开关] and Wenpeon_status == 状态.手持:
+		$Dual_wiel.visible = true
 	if Wenpeon_status == 状态.手持 and Charge_state:#蓄力计时器
 		timing += delta
 		$"蓄力".value = timing / Charge_UP[蓄力.蓄力时长] * 63 + 25
@@ -74,9 +90,39 @@ func _physics_process(delta: float) -> void:
 		Mouse = false
 		$Atk_CD.start(Atk_CD)
 		Tick = 0
+		if Dual_wielding[双持.开关]:
+			if Dual_count == 0:
+				$Dual.start(Dual_wielding[双持.延迟])
+			Dual_count += 1
 	Rota = $Item.rotation_degrees
 	Posa = $Item/pos.global_position
+	Dual_rot = $Dual_wiel.rotation_degrees
+	Dual_poat = $Dual_wiel/Node2D.global_position
 	for i in  Atk_Combo: #伤害执行器
+		if i == Dual_tick and Wenpeon_status == 状态.手持 and Maga_star != 换弹状态.正在换弹: #双持功能
+			for x in randi_range(Bullet_Qty.x,Bullet_Qty.y): #子弹生成
+				if Throwables[投掷功能.投掷开关] == false:
+					var Bullet_ins = Bullet.instantiate()
+					Bullet_ins.Speed = randi_range(Bullet_speed.x,Bullet_speed.y)
+					Bullet_ins.rotation_degrees = Dual_rot + randf_range(Bullet_Scatter.x,Bullet_Scatter.y)
+					Bullet_ins.Text = Bullet_Textu
+					Bullet_ins.position = Dual_poat
+					get_parent().add_child(Bullet_ins)
+					Bullet_ins.kill(randf_range(Kill_CD.x,Kill_CD.y))
+				if Throwables[投掷功能.投掷开关]: #投掷/重力功能开启事件
+					var Bullet_ins = load("res://道具类/远程武器场景/子弹场景/投掷物场景.tscn").instantiate()
+					match Throwables[投掷功能.蓄力关联]:
+						true:
+							Bullet_ins.gravity = Throwables[投掷功能.重力] - gravity
+						false:
+							Bullet_ins.gravity = Throwables[投掷功能.重力]
+					Bullet_ins.Speed = randi_range(Bullet_speed.x,Bullet_speed.y)
+					Bullet_ins.rotation_degrees = Dual_rot + randf_range(Bullet_Scatter.x,Bullet_Scatter.y)
+					Bullet_ins.Text = Bullet_Textu
+					Bullet_ins.position = Dual_poat
+					get_parent().add_child(Bullet_ins)
+					Bullet_ins.kill(randf_range(Kill_CD.x,Kill_CD.y))
+			pass
 		if i == Tick and Wenpeon_status == 状态.手持:
 			var Animation_load  = $Item/Item/AnimationPlayer
 			if Charge_UP[蓄力.开关] == false: #当武器拥有蓄力功能时关闭默认动画
@@ -110,6 +156,7 @@ func _physics_process(delta: float) -> void:
 					get_parent().add_child(Bullet_ins)
 					Bullet_ins.kill(randf_range(Kill_CD.x,Kill_CD.y))
 	Tick += 1
+	Dual_tick += 1
 	return
 func _input(event: InputEvent) -> void:
 	pass
@@ -143,5 +190,15 @@ func Charge_time(): #蓄力事件
 	Charge_state = true
 	$Item/Item/AnimationPlayer.play(Charge_UP[蓄力.蓄力动画])
 	return true
-	
-	
+func Dual_Stop():
+	if Maga_star == 换弹状态.正在换弹:
+		return
+	$Dual_wiel/AnimationPlayer.stop()
+	$Dual_wiel/AnimationPlayer.play(Dual_wielding[双持.动作])
+	Dual_count -= 1
+	Dual_tick = 0
+	if Dual_count > 0 :
+		$Dual.start(Dual_wielding[双持.延迟])
+	if Dual_count <= 0:
+		return
+	pass
