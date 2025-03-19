@@ -36,8 +36,9 @@ func _physics_process(delta: float) -> void:
 	if Wenpeon_status == 状态.手持 and Charge_state and Input.is_action_pressed("ShuB") == false and $Item/Item/AnimationPlayer.is_playing() == false and Wenpeon_Detc:
 		if timing > Charge_UP[蓄力.蓄力时长]:
 			timing = Charge_UP[蓄力.蓄力时长]
-		var Atk_add = timing * Charge_UP[蓄力.数值增加]
-		var Atk_percentage_add = timing * Charge_UP[蓄力.百分比增加]
+		timing = timing / Charge_UP[蓄力.蓄力时长]
+		Atk_add = timing * Charge_UP[蓄力.数值增加]
+		Atk_percentage_add = timing * Charge_UP[蓄力.百分比增加] * Atk.y
 		$Item/Item/AnimationPlayer.play(Charge_UP[蓄力.蓄力后动画])
 		Tick = 0
 		Charge_state = false
@@ -60,9 +61,12 @@ func _physics_process(delta: float) -> void:
 		Tick = 0
 	for i in  Atk_Combo:#伤害事件
 		if i == Tick and Wenpeon_status == 状态.手持:
+			var Add_Damage  = randf_range(Atk.x,Atk.y) + Atk_add + Atk_percentage_add
+			Charge_reset() #重置蓄力数值
 			var Animation_load  = $Item/Item/AnimationPlayer
 			if Charge_UP[蓄力.开关] == false:
 				Animation_load.play(Atk_Animation)
+			$Atk.Atk(Add_Damage)
 			#Animation_load.play(Atk_Animation_Extra)
 	Tick += 1
 	return
@@ -82,6 +86,7 @@ func _input(event: InputEvent) -> void:
 			$Item/Item/AnimationPlayer.play(Charge_UP[蓄力.蓄力动画])
 			$Atk_CD.start(Atk_CD)
 			Charge_state = true
+			return
 		$Atk_CD.start(Atk_CD)
 		Tick = 0
 		Mouse = false

@@ -12,8 +12,10 @@ enum 投掷功能 {投掷开关,蓄力关联,增加力度,重力}
 @export var Atk_Animation = "武器动画库/通用射击动画" ##攻击动画
 @export var Atk_Animation_Extra = "null" ##额外攻击动画
 @export var Throwables = [false,false,0.1,0.1] ##投掷/子弹重力系统
-@export var Kill_CD = Vector2(1,2)
+@export var Kill_CD = Vector2(1,2) ##子弹死亡时间
 @export var Maga_star = 换弹状态.未换弹
+@export var Dual_texu = load("res://素材库/武器贴图/rose vector.png") ##双持贴图
+@export var Penetrate = 1 ##子弹穿透层数
 var Tick = 0 #攻击计时器
 var Dual_tick = 0#
 var Dual_count = 0
@@ -36,6 +38,7 @@ func _physics_process(delta: float) -> void:
 		tween.tween_property($Dual_wiel, "rotation", $Dual_wiel.rotation + $Dual_wiel.get_angle_to(get_global_mouse_position()), Rot_Speed)
 		$Dual_wiel.scale = $Item.scale
 		$Dual_wiel.visible = true
+		$Dual_wiel/Dual.texture = Dual_texu
 	if Dual_wielding[双持.开关] == false:
 		$Dual_wiel.visible = false
 	if Wenpeon_status != 状态.手持:#武器不为手持时退出蓄力状态
@@ -60,8 +63,8 @@ func _physics_process(delta: float) -> void:
 		if timing > Charge_UP[蓄力.蓄力时长]:#根据蓄力时长设置伤害
 			timing = Charge_UP[蓄力.蓄力时长]
 		var percentage = timing  / Charge_UP[蓄力.蓄力时长]
-		var Atk_add = percentage * Charge_UP[蓄力.数值增加]
-		var Atk_percentage_add = percentage * Charge_UP[蓄力.百分比增加] / 100 * Atk
+		Atk_add = percentage * Charge_UP[蓄力.数值增加]
+		Atk_percentage_add = percentage * Charge_UP[蓄力.百分比增加] / 100 * Atk.y
 		if Throwables[投掷功能.投掷开关] and Throwables[投掷功能.蓄力关联]:
 			gravity = percentage * Throwables[投掷功能.增加力度]
 		$Item/Item/AnimationPlayer.play(Charge_UP[蓄力.蓄力后动画]) #蓄力条
@@ -107,6 +110,9 @@ func _physics_process(delta: float) -> void:
 					Bullet_ins.rotation_degrees = Dual_rot + randf_range(Bullet_Scatter.x,Bullet_Scatter.y)
 					Bullet_ins.Text = Bullet_Textu
 					Bullet_ins.position = Dual_poat
+					Bullet_ins.Damage = randf_range(Atk.x,Atk.y) + Atk_add + Atk_percentage_add
+					Charge_reset() #重置蓄力数值
+					Bullet_ins.Penet = Penetrate
 					get_parent().add_child(Bullet_ins)
 					Bullet_ins.kill(randf_range(Kill_CD.x,Kill_CD.y))
 				if Throwables[投掷功能.投掷开关]: #投掷/重力功能开启事件
@@ -120,6 +126,9 @@ func _physics_process(delta: float) -> void:
 					Bullet_ins.rotation_degrees = Dual_rot + randf_range(Bullet_Scatter.x,Bullet_Scatter.y)
 					Bullet_ins.Text = Bullet_Textu
 					Bullet_ins.position = Dual_poat
+					Bullet_ins.Damage = randf_range(Atk.x,Atk.y) + Atk_add + Atk_percentage_add
+					Charge_reset() #重置蓄力数值
+					Bullet_ins.Penet = Penetrate
 					get_parent().add_child(Bullet_ins)
 					Bullet_ins.kill(randf_range(Kill_CD.x,Kill_CD.y))
 			pass
@@ -140,6 +149,9 @@ func _physics_process(delta: float) -> void:
 					Bullet_ins.rotation_degrees = Rota + randf_range(Bullet_Scatter.x,Bullet_Scatter.y)
 					Bullet_ins.Text = Bullet_Textu
 					Bullet_ins.position = Posa
+					Bullet_ins.Damage = randf_range(Atk.x,Atk.y) + Atk_add + Atk_percentage_add
+					Charge_reset() #重置蓄力数值
+					Bullet_ins.Penet = Penetrate
 					get_parent().add_child(Bullet_ins)
 					Bullet_ins.kill(randf_range(Kill_CD.x,Kill_CD.y))
 				if Throwables[投掷功能.投掷开关]: #投掷/重力功能开启事件
@@ -153,6 +165,9 @@ func _physics_process(delta: float) -> void:
 					Bullet_ins.rotation_degrees = Rota + randf_range(Bullet_Scatter.x,Bullet_Scatter.y)
 					Bullet_ins.Text = Bullet_Textu
 					Bullet_ins.position = Posa
+					Bullet_ins.Damage = randf_range(Atk.x,Atk.y) + Atk_add + Atk_percentage_add
+					Charge_reset() #重置蓄力数值
+					Bullet_ins.Penet = Penetrate
 					get_parent().add_child(Bullet_ins)
 					Bullet_ins.kill(randf_range(Kill_CD.x,Kill_CD.y))
 	Tick += 1
@@ -172,13 +187,9 @@ func Magazine_HD():#弹匣综合执行事件
 		Maga_star = 换弹状态.正在换弹
 		Kinetic_effect[0].pivot_offset = Vector2(70,32.5) #设置ui字体轴心
 		var tween = get_tree().create_tween()
-		tween.set_trans(1)#ui字体换弹动画
-		tween.tween_property(Kinetic_effect[0], "modulate:a", 0, Magazine[弹匣.换弹时间]/2)
-		tween.tween_property(Kinetic_effect[0], "modulate:a", 1, Magazine[弹匣.换弹时间]/2)
-		var tween1 = get_tree().create_tween()
-		tween1.set_trans(1)
-		tween1.tween_property(Kinetic_effect[0], "scale",Vector2(0,0), Magazine[弹匣.换弹时间]/2)
-		tween1.tween_property(Kinetic_effect[0], "scale",Vector2(1,1), Magazine[弹匣.换弹时间]/2)
+		tween.set_trans(1)
+		tween.tween_property(Kinetic_effect[0], "scale",Vector2(0,0), Magazine[弹匣.换弹时间]/2)
+		tween.tween_property(Kinetic_effect[0], "scale",Vector2(1,1), Magazine[弹匣.换弹时间]/2)
 		return "Stop"
 	if Magazine[弹匣.当前容量] >= 1:
 		Magazine[弹匣.当前容量] -= 1

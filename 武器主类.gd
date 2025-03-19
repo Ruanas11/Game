@@ -22,6 +22,8 @@ var pos = Vector2(0,0)
 @export var Dual_wielding = [false,0.1,"res://素材库/武器贴图/Selection 2024-09-04T12.47.06.png","武器动画库/双持射击"]
 @export var Flip_v = true
 @export var Flip_h = true
+var Atk_add : float = 0  ##蓄力数值增加伤害
+var Atk_percentage_add :float= 0 ##蓄力百分比增加伤害
 var timing :float = 0
 var Charge_state = false 
 var Kinetic_effect = []
@@ -73,3 +75,6 @@ func Stop():
 	if Wenpeon_Detc:
 		velocity = velocity.move_toward(Vector2.ZERO,Stop_Speed)
 	move_and_slide()
+func Charge_reset():
+	Atk_add = 0 
+	Atk_percentage_add = 0
