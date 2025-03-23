@@ -1,11 +1,9 @@
 extends Item
 class_name Wenpeon
-enum 状态 {掉落物,手持,背包,投掷物}
 enum 弹匣 {开关,当前容量,容量,换弹时间,换弹动画}
 enum 蓄力 {开关,蓄力时长,蓄力动画,蓄力后动画,数值增加,百分比增加}
 enum 双持 {开关,延迟,贴图,动作}
 var pos = Vector2(0,0)
-@export var Wenpeon_status = 状态.掉落物 ##武器状态 分为掉落物  手持  背包内
 @export var Atk : Vector2 = Vector2(1,5) ##攻击力
 @export var Atk_CD :float = 1.5 ##攻击冷却
 @export var Atk_Combo = [0] ##多段攻击 攻击后多少游戏刻后再次攻击 1秒=60游戏刻

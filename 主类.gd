@@ -1,12 +1,16 @@
 extends CharacterBody2D
 class_name Item
 var Type = "Item"
+enum 状态 {掉落物,手持,背包,投掷物}
 @export var Textu = load("res://素材库/武器贴图/A3.png")
 @export var Donghua = "武器动画库/null" ##动画id
 @export var LV = 0 ##等级
 @export var text = "未命名"##名称
 @export var Text_pos = Vector2(0,0)##名称定位
 @export var Qty = 1##数量
+@export var Wenpeon_status = 状态.掉落物 ##武器状态 分为掉落物  手持  背包内
+@export var Fittings = ""
+@export var Item_Type = "Item"
 var Detct 
 func _ready() -> void:
 	var Animation_load  = $Item/Item/AnimationPlayer
